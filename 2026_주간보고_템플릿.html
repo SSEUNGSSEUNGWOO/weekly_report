@@ -1,0 +1,1038 @@
+<!-- 2026 AI·데이터기반행정 역량강화 사업 - 주간업무 보고 (웹 누적형 / v2) -->
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root{
+    --bg:#FBF8F1;
+    --bg-side:#F1ECDF;
+    --bg-card:#FFFFFF;
+    --bg-sector:#FCFAF4;
+    --ink:#171410;
+    --ink-2:#3D362C;
+    --ink-3:#6E6757;
+    --ink-4:#A39B89;
+    --line:#DCD3BD;
+    --line-2:#EBE3CE;
+    --line-3:#F1EBD9;
+    --accent:#8A5A2B;
+    --accent-2:#B07B3D;
+    --accent-soft:rgba(138,90,43,.07);
+    --accent-soft-2:rgba(138,90,43,.16);
+    --danger:#A03A2C;
+    --danger-soft:rgba(160,58,44,.06);
+    --serif:'Cormorant Garamond', 'Noto Serif KR', serif;
+    --mono:'JetBrains Mono', 'D2Coding', monospace;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    font-family:'Pretendard', -apple-system, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    font-size:13.5px;
+    line-height:1.65;
+    letter-spacing:-.01em;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:'';
+    position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(138,90,43,.025) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(23,20,16,.02) 0%, transparent 50%);
+  }
+
+  .app{display:flex;height:100vh;position:relative;z-index:1;}
+
+  /* ============ SIDEBAR ============ */
+  .sidebar{
+    width:320px;flex-shrink:0;
+    background:var(--bg-side);
+    border-right:1px solid var(--line);
+    display:flex;flex-direction:column;overflow:hidden;
+  }
+  .side-head{padding:28px 26px 22px;border-bottom:1px solid var(--line);}
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:var(--mono);font-size:10.5px;font-weight:500;
+    color:var(--accent);letter-spacing:.12em;text-transform:uppercase;
+    margin-bottom:14px;
+  }
+  .badge::before{content:'';width:18px;height:1px;background:var(--accent);}
+  .proj-title{
+    font-family:'Pretendard';font-weight:700;font-size:19px;line-height:1.4;
+    color:var(--ink);letter-spacing:-.025em;margin-bottom:4px;
+  }
+  .proj-meta{margin-top:18px;display:flex;flex-direction:column;gap:6px;font-size:11.5px;color:var(--ink-3);}
+  .proj-meta .row{display:flex;gap:10px;align-items:baseline;}
+  .proj-meta .k{
+    font-family:var(--mono);font-size:10px;color:var(--ink-4);
+    text-transform:uppercase;letter-spacing:.08em;min-width:54px;
+  }
+  .proj-meta .v{color:var(--ink-2);font-weight:500;}
+
+  .side-actions{padding:14px 18px 10px;}
+  .btn-add{
+    width:100%;padding:11px 14px;
+    background:var(--ink);color:#FBF8F1;
+    border:none;border-radius:6px;
+    font-family:'Pretendard';font-weight:600;font-size:13px;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+    transition:all .15s ease;letter-spacing:-.01em;
+  }
+  .btn-add:hover{background:var(--accent);transform:translateY(-1px);}
+  .btn-add .plus{font-size:16px;font-weight:300;}
+
+  .side-section-title{
+    padding:14px 26px 8px;
+    font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+    color:var(--ink-4);text-transform:uppercase;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .side-section-title .count{font-family:var(--mono);color:var(--ink-3);}
+
+  .week-list{flex:1;overflow-y:auto;padding:4px 12px 24px;}
+  .week-list::-webkit-scrollbar{width:6px;}
+  .week-list::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px;}
+
+  .week-empty{padding:32px 18px;text-align:center;color:var(--ink-4);font-size:12px;line-height:1.7;}
+  .week-empty .ic{
+    font-family:var(--serif);font-size:32px;font-style:italic;
+    color:var(--line);display:block;margin-bottom:6px;
+  }
+
+  .week-item{
+    padding:11px 14px 12px;margin-bottom:3px;border-radius:5px;
+    cursor:pointer;transition:background .12s ease;
+    border:1px solid transparent;position:relative;
+  }
+  .week-item:hover{background:rgba(255,255,255,.5);}
+  .week-item.active{
+    background:#FFFFFF;border-color:var(--line);
+    box-shadow:0 1px 2px rgba(23,20,16,.04);
+  }
+  .week-item .wk-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;}
+  .week-item .wk-num{
+    font-family:var(--serif);font-size:18px;font-weight:500;
+    color:var(--ink);letter-spacing:-.01em;
+  }
+  .week-item.active .wk-num{color:var(--accent);}
+  .week-item .wk-tag{font-family:var(--mono);font-size:9.5px;color:var(--ink-4);letter-spacing:.06em;}
+  .week-item .wk-range{font-size:11.5px;color:var(--ink-3);font-weight:500;}
+  .week-item .wk-updated{font-family:var(--mono);font-size:9.5px;color:var(--ink-4);margin-top:4px;}
+  .week-item .wk-del{
+    position:absolute;right:8px;top:50%;transform:translateY(-50%);
+    width:22px;height:22px;border-radius:4px;
+    background:transparent;border:none;cursor:pointer;
+    color:var(--ink-4);font-size:14px;
+    display:none;align-items:center;justify-content:center;transition:all .12s;
+  }
+  .week-item:hover .wk-del{display:flex;}
+  .week-item .wk-del:hover{background:var(--danger-soft);color:var(--danger);}
+
+  /* ============ MAIN ============ */
+  .main{flex:1;overflow-y:auto;background:var(--bg);position:relative;}
+  .main::-webkit-scrollbar{width:8px;}
+  .main::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+
+  .main-inner{max-width:980px;margin:0 auto;padding:48px 56px 80px;}
+
+  .empty-state{
+    height:100%;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    padding:60px 40px;text-align:center;color:var(--ink-3);
+  }
+  .empty-state .big-num{
+    font-family:var(--serif);font-style:italic;font-size:140px;line-height:1;
+    color:var(--line);margin-bottom:12px;
+  }
+  .empty-state h2{font-family:var(--serif);font-weight:500;font-size:28px;color:var(--ink-2);margin-bottom:10px;}
+  .empty-state p{font-size:13.5px;color:var(--ink-3);max-width:420px;line-height:1.7;}
+
+  /* ===== Detail header ===== */
+  .detail-head{border-bottom:1px solid var(--line);padding-bottom:28px;margin-bottom:36px;}
+  .detail-eyebrow{
+    font-family:var(--mono);font-size:10.5px;
+    color:var(--accent);letter-spacing:.16em;text-transform:uppercase;
+    margin-bottom:14px;display:flex;align-items:center;gap:10px;
+  }
+  .detail-eyebrow::before{content:'';width:24px;height:1px;background:var(--accent);}
+  .title-row{display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap;}
+  .editable{
+    border:none;outline:none;background:transparent;
+    font-family:inherit;color:inherit;
+    border-bottom:1px dashed transparent;transition:border .15s;
+    padding:2px 4px;border-radius:2px;
+  }
+  .editable:hover{border-bottom-color:var(--line);}
+  .editable:focus{border-bottom-color:var(--accent);background:var(--accent-soft);}
+  .title-input{
+    font-family:var(--serif);font-weight:500;font-size:42px;
+    color:var(--ink);letter-spacing:-.015em;line-height:1.05;
+    min-width:160px;width:auto;
+  }
+  .title-input::placeholder{color:var(--line);}
+
+  .meta-row{display:flex;flex-wrap:wrap;gap:26px;margin-top:18px;align-items:center;}
+  .meta-item{display:flex;flex-direction:column;gap:3px;}
+  .meta-label{
+    font-family:var(--mono);font-size:9.5px;
+    color:var(--ink-4);letter-spacing:.12em;text-transform:uppercase;
+  }
+  .meta-value{font-size:13px;color:var(--ink-2);font-weight:500;display:flex;align-items:center;gap:6px;}
+  .date-input{font-size:13px;color:var(--ink-2);font-weight:500;font-family:'Pretendard';width:130px;}
+  .save-status{
+    margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--ink-4);
+    display:flex;align-items:center;gap:6px;transition:opacity .3s;
+  }
+  .save-status .dot{width:6px;height:6px;border-radius:50%;background:#7BA05B;}
+  .save-status.saving .dot{background:var(--accent-2);animation:pulse 1s infinite;}
+  @keyframes pulse{50%{opacity:.4;}}
+
+  /* ===== Section frame ===== */
+  .section{
+    margin-bottom:36px;background:var(--bg-card);
+    border:1px solid var(--line-2);border-radius:8px;overflow:hidden;
+    transition:border-color .15s,box-shadow .15s;
+  }
+  .section:focus-within{border-color:var(--line);box-shadow:0 2px 12px rgba(23,20,16,.04);}
+  .sec-head{
+    display:flex;align-items:flex-start;gap:18px;
+    padding:22px 28px 14px;border-bottom:1px solid var(--line-3);
+  }
+  .sec-num{
+    font-family:var(--serif);font-style:italic;font-size:42px;line-height:.9;
+    font-weight:500;color:var(--accent);flex-shrink:0;margin-top:-2px;
+  }
+  .sec-title-wrap{flex:1;}
+  .sec-eyebrow{
+    font-family:var(--mono);font-size:9.5px;
+    color:var(--ink-4);letter-spacing:.14em;text-transform:uppercase;margin-bottom:3px;
+  }
+  .sec-title{
+    font-family:'Pretendard';font-weight:700;font-size:18px;
+    color:var(--ink);letter-spacing:-.02em;margin-bottom:6px;
+  }
+  .sec-desc{font-size:11.5px;color:var(--ink-3);line-height:1.6;}
+
+  .sec-body-table{padding:6px 28px 18px;}
+  .sec-body-sectors{padding:18px 22px 22px;display:flex;flex-direction:column;gap:14px;}
+
+  /* ===== Editor table (sec 01 / 03) ===== */
+  .editor-table{width:100%;border-collapse:collapse;font-size:13px;}
+  .editor-table thead th{
+    text-align:left;
+    font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;
+    color:var(--ink-4);text-transform:uppercase;font-weight:500;
+    padding:12px 12px 10px;border-bottom:1px solid var(--line);background:transparent;
+  }
+  .editor-table tbody td{
+    border-bottom:1px solid var(--line-3);
+    vertical-align:top;padding:0;
+  }
+  .editor-table tbody tr:last-child td{border-bottom:none;}
+  .editor-table tbody tr:hover{background:var(--accent-soft);}
+  .editor-table .row-empty td{
+    padding:24px 12px;text-align:center;
+    color:var(--ink-4);font-size:12px;font-style:italic;
+    border-bottom:none;background:transparent !important;
+  }
+
+  .cell-input{
+    width:100%;border:none;outline:none;background:transparent;
+    font-family:'Pretendard',sans-serif;font-size:13px;color:var(--ink);
+    padding:11px 12px;line-height:1.6;letter-spacing:-.01em;resize:none;
+  }
+  .cell-input:focus{
+    background:var(--accent-soft);
+    box-shadow:inset 0 0 0 1px var(--accent-soft-2);
+    border-radius:2px;
+  }
+  textarea.cell-input{min-height:42px;display:block;overflow:hidden;}
+  .cell-select{
+    appearance:none;-webkit-appearance:none;cursor:pointer;
+    padding-right:26px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%236E6757' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 10px center;
+  }
+  .cell-narrow{width:140px;}
+  .cell-status{width:120px;}
+  .cell-action{width:42px;}
+
+  .row-del{
+    width:24px;height:24px;background:transparent;
+    border:1px solid transparent;border-radius:4px;cursor:pointer;
+    font-size:14px;color:var(--ink-4);
+    display:flex;align-items:center;justify-content:center;
+    margin:8px auto;transition:all .12s;
+  }
+  .row-del:hover{border-color:var(--danger);color:var(--danger);background:var(--danger-soft);}
+
+  .add-row{
+    margin-top:12px;padding:8px 14px;
+    background:transparent;border:1px dashed var(--line);border-radius:4px;
+    font-family:'Pretendard';font-size:12px;color:var(--ink-3);
+    cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+    transition:all .12s;letter-spacing:-.01em;
+  }
+  .add-row:hover{
+    border-color:var(--accent);border-style:solid;
+    color:var(--accent);background:var(--accent-soft);
+  }
+  .add-row span.ic{font-size:14px;font-weight:300;}
+  .add-row.small{padding:6px 11px;font-size:11px;}
+  .add-row.subtle{color:var(--ink-4);border-color:var(--line-2);}
+  .add-row.subtle:hover{color:var(--ink-2);border-color:var(--ink-3);background:transparent;}
+
+  /* ===== Sector cards (sec 02) ===== */
+  .sector-card{
+    border:1px solid var(--line-2);border-radius:6px;
+    background:var(--bg-sector);overflow:hidden;
+    transition:border-color .15s;
+  }
+  .sector-card:focus-within{border-color:var(--accent-soft-2);}
+  .sector-head{
+    padding:11px 18px;
+    background:linear-gradient(to right, rgba(138,90,43,.06), transparent 70%);
+    border-bottom:1px solid var(--line-3);
+    display:flex;align-items:baseline;gap:12px;
+  }
+  .sector-marker{
+    font-family:var(--serif);font-size:22px;font-weight:500;font-style:italic;
+    color:var(--accent);line-height:1;
+  }
+  .sector-name{font-weight:700;font-size:14.5px;color:var(--ink);letter-spacing:-.02em;}
+  .sector-tag{
+    margin-left:auto;
+    font-family:var(--mono);font-size:9.5px;color:var(--ink-4);
+    letter-spacing:.1em;text-transform:uppercase;
+  }
+
+  .sector-body{display:grid;grid-template-columns:1fr 1.9fr;}
+  @media (max-width:880px){.sector-body{grid-template-columns:1fr;}}
+
+  .sector-pane{padding:14px 18px 16px;}
+  .sector-pane + .sector-pane{border-left:1px solid var(--line-3);}
+  @media (max-width:880px){
+    .sector-pane + .sector-pane{border-left:none;border-top:1px solid var(--line-3);}
+  }
+
+  .sector-pane-title{
+    font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;
+    color:var(--ink-4);text-transform:uppercase;
+    margin-bottom:10px;display:flex;align-items:center;gap:8px;
+  }
+  .sector-pane-title::before{content:'';width:14px;height:1px;background:var(--ink-4);}
+
+  .sector-textarea{
+    width:100%;min-height:96px;
+    border:none;outline:none;background:transparent;
+    font-family:'Pretendard';font-size:13px;color:var(--ink);
+    resize:none;line-height:1.7;letter-spacing:-.01em;padding:6px 8px;
+    border-radius:3px;
+  }
+  .sector-textarea:focus{background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent-soft-2);}
+  .sector-textarea::placeholder{color:var(--ink-4);white-space:pre-line;}
+
+  .plan-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .plan-table thead th{
+    text-align:left;
+    font-family:var(--mono);font-size:9px;letter-spacing:.12em;
+    color:var(--ink-4);text-transform:uppercase;font-weight:500;
+    padding:0 8px 7px;border-bottom:1px solid var(--line-2);
+  }
+  .plan-table tbody td{
+    border-bottom:1px dashed var(--line-3);padding:0;vertical-align:middle;
+  }
+  .plan-table tbody tr:last-child td{border-bottom:none;}
+  .plan-table tbody tr:hover{background:rgba(138,90,43,.03);}
+  .plan-table .cell-input{padding:8px;font-size:12.5px;}
+  .plan-table .row-empty td{
+    padding:18px 8px;text-align:center;font-size:11.5px;color:var(--ink-4);
+    font-style:italic;border-bottom:none;background:transparent !important;
+  }
+
+  .plan-day{width:64px;}
+  .plan-date{width:72px;}
+  .plan-task{width:auto;}
+  .plan-due{width:130px;}
+  .plan-action{width:36px;}
+
+  .plan-actions{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;}
+
+  /* ===== Footer ===== */
+  .doc-foot{
+    margin-top:48px;padding-top:24px;border-top:1px solid var(--line-2);
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+    font-family:var(--mono);font-size:10.5px;color:var(--ink-4);letter-spacing:.04em;
+  }
+  .doc-foot .actions{display:flex;gap:8px;}
+  .foot-btn{
+    background:transparent;border:1px solid var(--line);
+    padding:6px 12px;border-radius:4px;
+    font-family:var(--mono);font-size:10.5px;color:var(--ink-3);cursor:pointer;
+    letter-spacing:.06em;text-transform:uppercase;transition:all .12s;
+  }
+  .foot-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .foot-btn.danger:hover{border-color:var(--danger);color:var(--danger);}
+  .foot-btn.primary{background:var(--ink);color:#FBF8F1;border-color:var(--ink);}
+  .foot-btn.primary:hover{background:var(--accent);border-color:var(--accent);color:#FBF8F1;}
+  .foot-btn.primary:disabled{opacity:.5;cursor:not-allowed;background:var(--ink);}
+
+  /* PDF capture mode — hide UI chrome inside main-inner */
+  .pdf-mode .save-status,
+  .pdf-mode .row-del,
+  .pdf-mode .add-row,
+  .pdf-mode .plan-actions,
+  .pdf-mode .doc-foot .actions{display:none !important;}
+  .pdf-mode .editable{border-bottom:none !important;}
+  .pdf-mode .section{break-inside:avoid;page-break-inside:avoid;}
+  .pdf-mode .sector-card{break-inside:avoid;page-break-inside:avoid;}
+
+  /* ===== Responsive ===== */
+  @media (max-width:880px){
+    .sidebar{width:280px;}
+    .main-inner{padding:32px 24px 60px;}
+    .title-input{font-size:32px;}
+    .sec-head{padding:18px 18px 12px;}
+    .sec-body-table{padding:4px 14px 14px;}
+    .sec-body-sectors{padding:14px 14px 18px;}
+  }
+
+  /* ===== Print ===== */
+  @media print{
+    body{background:#fff;overflow:visible;}
+    body::before{display:none;}
+    .sidebar,.save-status,.row-del,.add-row,.plan-actions,.doc-foot .actions{display:none !important;}
+    .main{overflow:visible;height:auto;}
+    .main-inner{max-width:none;padding:20px;}
+    .section{break-inside:avoid;border:1px solid #ccc;box-shadow:none;}
+    .sector-card{break-inside:avoid;}
+    .editable{border-bottom:none;}
+  }
+</style>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="side-head">
+      <div class="badge">2026 · Weekly Report</div>
+      <div class="proj-title">AI·데이터기반행정<br>역량강화 사업</div>
+      <div class="proj-meta">
+        <div class="row"><span class="k">주관</span><span class="v">행정안전부</span></div>
+        <div class="row"><span class="k">주최</span><span class="v">한국지능정보사회진흥원</span></div>
+        <div class="row"><span class="k">사업자</span><span class="v">㈜케이브레인컴퍼니</span></div>
+        <div class="row"><span class="k">총괄</span><span class="v">이재우 상무</span></div>
+      </div>
+    </div>
+
+    <div class="side-actions">
+      <button class="btn-add" onclick="addWeek()">
+        <span class="plus">+</span><span>새 주차 추가</span>
+      </button>
+    </div>
+
+    <div class="side-section-title">
+      <span>주차별 보고</span>
+      <span class="count" id="weekCount">00</span>
+    </div>
+
+    <nav class="week-list" id="weekList"></nav>
+  </aside>
+
+  <main class="main" id="main"></main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+  const STORAGE_KEY = 'kbrain_weekly_2026_v1';
+
+  const DEFAULT_SECTORS = [
+    { id:'general_edu', marker:'①', name:'일반교육' },
+    { id:'expert',      marker:'②', name:'전문인재 양성' },
+    { id:'champion',    marker:'③', name:'AI 챔피언' },
+    { id:'consulting',  marker:'④', name:'컨설팅' },
+    { id:'diagnosis',   marker:'⑤', name:'역량진단' },
+    { id:'system_etc',  marker:'⑥', name:'시스템·기타' }
+  ];
+
+  const OTHER_TYPES = ['위험','주관기관 요청','사업단 요청','공유','기타'];
+  const STATUS_OPTIONS = ['진행중','완료','검토중','보류','지연'];
+  const DAYS = ['월','화','수','목','금','토','일'];
+
+  let state = { weeks:[], currentId:null };
+  let saveTimer = null;
+  let sidebarTimer = null;
+
+  /* ===== Helpers ===== */
+  function uid(){ return 'id_' + Date.now().toString(36) + '_' + Math.floor(Math.random()*36**5).toString(36); }
+  function escHtml(s){ return String(s??'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+  function escAttr(s){ return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+  function todayISO(){ return new Date().toISOString().slice(0,10); }
+  function isoAddDays(iso,n){ const d=new Date(iso); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+  function fmtDate(iso){ if(!iso) return ''; const d=new Date(iso); if(isNaN(d)) return ''; return `${d.getMonth()+1}.${d.getDate()}`; }
+  function fmtMD(iso){ if(!iso) return ''; const d=new Date(iso); if(isNaN(d)) return ''; return `${d.getMonth()+1}/${d.getDate()}`; }
+  function timeAgo(ts){
+    if(!ts) return '—';
+    const diff=(Date.now()-ts)/1000;
+    if(diff<60) return '방금 전';
+    if(diff<3600) return `${Math.floor(diff/60)}분 전`;
+    if(diff<86400) return `${Math.floor(diff/3600)}시간 전`;
+    return `${Math.floor(diff/86400)}일 전`;
+  }
+  function currentWeek(){ return state.weeks.find(x=>x.id===state.currentId); }
+
+  /* ===== Storage ===== */
+  async function loadState(){
+    try{
+      const r = await window.storage.get(STORAGE_KEY);
+      if(r && r.value){
+        const parsed = JSON.parse(r.value);
+        state.weeks = (parsed.weeks||[]).map(migrate);
+      }
+    }catch(e){ state.weeks = []; }
+  }
+  async function persist(){
+    try{
+      await window.storage.set(STORAGE_KEY, JSON.stringify({ weeks:state.weeks, updatedAt:Date.now() }));
+      flagSaved();
+    }catch(e){ console.error('Save failed', e); }
+  }
+  function debouncedPersist(){
+    flagSaving();
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(persist, 600);
+  }
+
+  /* ===== Migration (old schema -> new) ===== */
+  function migrate(w){
+    if(!w.sections) w.sections = {};
+    // discussions: string -> array
+    if(typeof w.sections.discussions === 'string'){
+      const t = w.sections.discussions.trim();
+      w.sections.discussions = t ? [{id:uid(), category:'', content:t, decision:''}] : [];
+    }
+    if(!Array.isArray(w.sections.discussions)) w.sections.discussions = [];
+    w.sections.discussions.forEach(r=>{ if(!r.id) r.id=uid(); });
+
+    // results -> sectors
+    if(typeof w.sections.results === 'string'){
+      const t = w.sections.results.trim();
+      w.sections.sectors = DEFAULT_SECTORS.map((s,i)=>({...s, lastWeek: i===0?t:'', thisWeek:[]}));
+      delete w.sections.results;
+    }
+    if(!Array.isArray(w.sections.sectors)){
+      w.sections.sectors = DEFAULT_SECTORS.map(s=>({...s, lastWeek:'', thisWeek:[]}));
+    }
+    // ensure default sectors exist & schema
+    DEFAULT_SECTORS.forEach((d,i)=>{
+      let s = w.sections.sectors.find(x=>x.id===d.id);
+      if(!s){
+        s = {...d, lastWeek:'', thisWeek:[]};
+        w.sections.sectors.splice(i,0,s);
+      } else {
+        s.marker = d.marker; s.name = s.name || d.name;
+        if(typeof s.lastWeek!=='string') s.lastWeek = '';
+        if(!Array.isArray(s.thisWeek)) s.thisWeek = [];
+        s.thisWeek.forEach(r=>{
+          if(!r.id) r.id=uid();
+          if(typeof r.due!=='string') r.due='';
+        });
+      }
+    });
+
+    // others: string -> array
+    if(typeof w.sections.others === 'string'){
+      const t = w.sections.others.trim();
+      w.sections.others = t ? [{id:uid(), type:'', content:t, status:''}] : [];
+    }
+    if(!Array.isArray(w.sections.others)) w.sections.others = [];
+    w.sections.others.forEach(r=>{ if(!r.id) r.id=uid(); });
+
+    return w;
+  }
+
+  /* ===== Factory ===== */
+  function newWeek(){
+    const seq = state.weeks.length + 1;
+    const start = todayISO();
+    return {
+      id: 'wk_'+Date.now(),
+      seq,
+      weekTitle: seq+'주차',
+      dateStart: start,
+      dateEnd: isoAddDays(start, 4),
+      reportDate: start,
+      sections: {
+        discussions: [],
+        sectors: DEFAULT_SECTORS.map(s=>({...s, lastWeek:'', thisWeek:[]})),
+        others: []
+      },
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+  }
+  function newDiscussionRow(){ return { id:uid(), category:'', content:'', decision:'' }; }
+  function newScheduleRow(){ return { id:uid(), day:'', date:'', task:'', due:'' }; }
+  function newOtherRow(){ return { id:uid(), type:'', content:'', status:'' }; }
+
+  /* ===== Sidebar render ===== */
+  function renderSidebar(){
+    const list = document.getElementById('weekList');
+    document.getElementById('weekCount').textContent = String(state.weeks.length).padStart(2,'0');
+
+    if(state.weeks.length===0){
+      list.innerHTML = `
+        <div class="week-empty">
+          <span class="ic">~</span>
+          아직 등록된 주차가 없습니다.<br>
+          상단의 <strong>새 주차 추가</strong>를<br>눌러 첫 주차 보고를 시작하세요.
+        </div>`;
+      return;
+    }
+    const sorted = [...state.weeks].sort((a,b)=>(b.dateStart||'').localeCompare(a.dateStart||''));
+    list.innerHTML = sorted.map(w=>`
+      <div class="week-item ${w.id===state.currentId?'active':''}" data-id="${w.id}">
+        <div class="wk-top">
+          <span class="wk-num">${escHtml(w.weekTitle||'N주차')}</span>
+          <span class="wk-tag">W-${String(w.seq).padStart(2,'0')}</span>
+        </div>
+        <div class="wk-range">${fmtDate(w.dateStart)} – ${fmtDate(w.dateEnd)}</div>
+        <div class="wk-updated">최근 수정 · ${timeAgo(w.updatedAt)}</div>
+        <button class="wk-del" data-del="${w.id}" title="삭제">×</button>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('.week-item').forEach(el=>{
+      el.addEventListener('click', e=>{
+        if(e.target.closest('[data-del]')) return;
+        selectWeek(el.dataset.id);
+      });
+    });
+    list.querySelectorAll('[data-del]').forEach(el=>{
+      el.addEventListener('click', e=>{
+        e.stopPropagation();
+        deleteWeek(el.dataset.del);
+      });
+    });
+  }
+
+  /* ===== Main render ===== */
+  function renderMain(){
+    const main = document.getElementById('main');
+    if(!state.currentId){
+      main.innerHTML = emptyStateHTML();
+      return;
+    }
+    const w = currentWeek();
+    if(!w){ state.currentId=null; renderMain(); return; }
+    main.innerHTML = `<div class="main-inner">
+      ${headerHTML(w)}
+      ${section01HTML(w)}
+      ${section02HTML(w)}
+      ${section03HTML(w)}
+      ${footerHTML(w)}
+    </div>`;
+    bindAllEvents(main);
+  }
+
+  function emptyStateHTML(){
+    return `<div class="empty-state">
+      <div class="big-num">＿</div>
+      <h2>주차를 선택하거나 추가해 주세요</h2>
+      <p>좌측 목록에서 주차를 선택하면 해당 주의 주간업무 현황을 작성·확인할 수 있습니다. 모든 변경 사항은 자동으로 저장됩니다.</p>
+    </div>`;
+  }
+
+  function headerHTML(w){
+    return `<header class="detail-head">
+      <div class="detail-eyebrow"><span>Weekly Status Report</span></div>
+      <div class="title-row">
+        <input class="editable title-input" data-target="header" data-field="weekTitle" value="${escAttr(w.weekTitle)}" placeholder="N주차" />
+      </div>
+      <div class="meta-row">
+        <div class="meta-item">
+          <span class="meta-label">기간</span>
+          <span class="meta-value">
+            <input type="date" class="editable date-input" data-target="header" data-field="dateStart" value="${escAttr(w.dateStart)}" />
+            <span style="color:var(--ink-4)">—</span>
+            <input type="date" class="editable date-input" data-target="header" data-field="dateEnd" value="${escAttr(w.dateEnd)}" />
+          </span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">보고일</span>
+          <span class="meta-value">
+            <input type="date" class="editable date-input" data-target="header" data-field="reportDate" value="${escAttr(w.reportDate)}" />
+          </span>
+        </div>
+        <div class="save-status" id="saveStatus">
+          <span class="dot"></span><span class="txt">저장됨</span>
+        </div>
+      </div>
+    </header>`;
+  }
+
+  function sectionHead(num,eyebrow,title,desc){
+    return `<div class="sec-head">
+      <div class="sec-num">${num}</div>
+      <div class="sec-title-wrap">
+        <div class="sec-eyebrow">${eyebrow}</div>
+        <h3 class="sec-title">${title}</h3>
+        <p class="sec-desc">${desc}</p>
+      </div>
+    </div>`;
+  }
+
+  /* Section 01 */
+  function section01HTML(w){
+    const rows = w.sections.discussions.map(r=>`
+      <tr>
+        <td class="cell-narrow">
+          <input class="cell-input" data-target="discussion" data-id="${r.id}" data-field="category" value="${escAttr(r.category)}" placeholder="구분" />
+        </td>
+        <td>
+          <textarea class="cell-input" data-target="discussion" data-id="${r.id}" data-field="content" placeholder="논의 내용을 입력하세요">${escHtml(r.content)}</textarea>
+        </td>
+        <td>
+          <textarea class="cell-input" data-target="discussion" data-id="${r.id}" data-field="decision" placeholder="의사결정 / 협의 필요 사항">${escHtml(r.decision)}</textarea>
+        </td>
+        <td class="cell-action">
+          <button class="row-del" data-action="del-discussion" data-id="${r.id}" title="삭제">×</button>
+        </td>
+      </tr>`).join('');
+    const empty = w.sections.discussions.length===0 ? `<tr class="row-empty"><td colspan="4">등록된 논의 항목이 없습니다 — 항목 추가 버튼을 눌러 시작하세요</td></tr>` : '';
+    return `<section class="section">
+      ${sectionHead('01','Discussion','주간 주요 논의사항','의사결정이 필요한 사안 · 협의 안건 · 위험 이슈를 부문별로 정리합니다')}
+      <div class="sec-body-table">
+        <table class="editor-table">
+          <thead>
+            <tr>
+              <th class="cell-narrow">부문</th>
+              <th>논의 내용</th>
+              <th>의사결정 / 협의 필요</th>
+              <th class="cell-action"></th>
+            </tr>
+          </thead>
+          <tbody>${rows || empty}</tbody>
+        </table>
+        <button class="add-row" data-action="add-discussion"><span class="ic">+</span> 항목 추가</button>
+      </div>
+    </section>`;
+  }
+
+  /* Section 02 */
+  function section02HTML(w){
+    const sectors = w.sections.sectors.map(s=>sectorCardHTML(s)).join('');
+    return `<section class="section">
+      ${sectionHead('02','Progress','지난주 추진 결과 및 금주 추진 계획','사업 부문별 실적과 일자별 추진 계획을 정리합니다')}
+      <div class="sec-body-sectors">${sectors}</div>
+    </section>`;
+  }
+
+  function sectorCardHTML(s){
+    const rows = s.thisWeek.map(r=>`
+      <tr>
+        <td class="plan-day">
+          <select class="cell-input cell-select" data-target="sector-week" data-sector-id="${s.id}" data-id="${r.id}" data-field="day">
+            <option value="">—</option>
+            ${DAYS.map(d=>`<option value="${d}" ${r.day===d?'selected':''}>${d}</option>`).join('')}
+          </select>
+        </td>
+        <td class="plan-date">
+          <input class="cell-input" data-target="sector-week" data-sector-id="${s.id}" data-id="${r.id}" data-field="date" value="${escAttr(r.date)}" placeholder="M/D" />
+        </td>
+        <td class="plan-task">
+          <input class="cell-input" data-target="sector-week" data-sector-id="${s.id}" data-id="${r.id}" data-field="task" value="${escAttr(r.task)}" placeholder="과업 내용을 입력하세요" />
+        </td>
+        <td class="plan-due">
+          <input type="date" class="cell-input" data-target="sector-week" data-sector-id="${s.id}" data-id="${r.id}" data-field="due" value="${escAttr(r.due)}" />
+        </td>
+        <td class="plan-action">
+          <button class="row-del" data-action="del-week-row" data-sector-id="${s.id}" data-id="${r.id}">×</button>
+        </td>
+      </tr>`).join('');
+    const empty = s.thisWeek.length===0 ? `<tr class="row-empty"><td colspan="5">등록된 일정이 없습니다</td></tr>` : '';
+    return `<div class="sector-card">
+      <div class="sector-head">
+        <span class="sector-marker">${s.marker}</span>
+        <span class="sector-name">${escHtml(s.name)}</span>
+      </div>
+      <div class="sector-body">
+        <div class="sector-pane">
+          <div class="sector-pane-title">지난주 추진 실적</div>
+          <textarea class="sector-textarea" data-target="sector-last" data-sector-id="${s.id}" placeholder="• 추진 실적 1&#10;• 추진 실적 2">${escHtml(s.lastWeek)}</textarea>
+        </div>
+        <div class="sector-pane">
+          <div class="sector-pane-title">금주 추진 계획</div>
+          <table class="plan-table">
+            <thead>
+              <tr>
+                <th class="plan-day">요일</th>
+                <th class="plan-date">날짜</th>
+                <th class="plan-task">과업 내용</th>
+                <th class="plan-due">완료 예정일</th>
+                <th class="plan-action"></th>
+              </tr>
+            </thead>
+            <tbody>${rows || empty}</tbody>
+          </table>
+          <div class="plan-actions">
+            <button class="add-row small" data-action="add-week-row" data-sector-id="${s.id}"><span class="ic">+</span> 일정 추가</button>
+            <button class="add-row small subtle" data-action="prefill-week" data-sector-id="${s.id}">월–금 자동 추가</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  /* Section 03 */
+  function section03HTML(w){
+    const rows = w.sections.others.map(r=>`
+      <tr>
+        <td class="cell-narrow">
+          <select class="cell-input cell-select" data-target="other" data-id="${r.id}" data-field="type">
+            <option value="">—</option>
+            ${OTHER_TYPES.map(t=>`<option value="${t}" ${r.type===t?'selected':''}>${t}</option>`).join('')}
+          </select>
+        </td>
+        <td>
+          <textarea class="cell-input" data-target="other" data-id="${r.id}" data-field="content" placeholder="내용을 입력하세요">${escHtml(r.content)}</textarea>
+        </td>
+        <td class="cell-status">
+          <select class="cell-input cell-select" data-target="other" data-id="${r.id}" data-field="status">
+            <option value="">—</option>
+            ${STATUS_OPTIONS.map(s=>`<option value="${s}" ${r.status===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </td>
+        <td class="cell-action">
+          <button class="row-del" data-action="del-other" data-id="${r.id}">×</button>
+        </td>
+      </tr>`).join('');
+    const empty = w.sections.others.length===0 ? `<tr class="row-empty"><td colspan="4">등록된 항목이 없습니다</td></tr>` : '';
+    return `<section class="section">
+      ${sectionHead('03','Other','기타 사항','위험 관리 · 주관기관 요청사항 · 사업단 요청사항 · 공유 안건')}
+      <div class="sec-body-table">
+        <table class="editor-table">
+          <thead>
+            <tr>
+              <th class="cell-narrow">구분</th>
+              <th>내용</th>
+              <th class="cell-status">상태</th>
+              <th class="cell-action"></th>
+            </tr>
+          </thead>
+          <tbody>${rows || empty}</tbody>
+        </table>
+        <button class="add-row" data-action="add-other"><span class="ic">+</span> 항목 추가</button>
+      </div>
+    </section>`;
+  }
+
+  function footerHTML(w){
+    return `<div class="doc-foot">
+      <div class="ts">생성 · ${new Date(w.createdAt).toLocaleString('ko-KR')} &nbsp;·&nbsp; 수정 · ${new Date(w.updatedAt).toLocaleString('ko-KR')}</div>
+      <div class="actions">
+        <button class="foot-btn primary" onclick="downloadPDF()">PDF 다운로드</button>
+        <button class="foot-btn" onclick="printWeek()">PRINT</button>
+        <button class="foot-btn danger" onclick="deleteCurrent()">DELETE</button>
+      </div>
+    </div>`;
+  }
+
+  /* ===== Event binding ===== */
+  function bindAllEvents(main){
+    main.querySelectorAll('[data-target]').forEach(el=>{
+      el.addEventListener('input', ()=>handleInput(el));
+      if(el.tagName==='SELECT') el.addEventListener('change', ()=>handleInput(el));
+    });
+    main.querySelectorAll('[data-action]').forEach(el=>{
+      el.addEventListener('click', ()=>handleAction(el));
+    });
+    main.querySelectorAll('textarea').forEach(el=>{
+      autoResize(el);
+      el.addEventListener('input', ()=>autoResize(el));
+    });
+  }
+  function autoResize(el){
+    el.style.height = 'auto';
+    el.style.height = Math.max(el.classList.contains('sector-textarea')?96:42, el.scrollHeight) + 'px';
+  }
+
+  function handleInput(el){
+    const w = currentWeek(); if(!w) return;
+    const t = el.dataset.target, v = el.value;
+    if(t==='header'){
+      w[el.dataset.field] = v;
+      if(['weekTitle','dateStart','dateEnd'].includes(el.dataset.field)){
+        clearTimeout(sidebarTimer);
+        sidebarTimer = setTimeout(renderSidebar, 500);
+      }
+    } else if(t==='discussion'){
+      const r = w.sections.discussions.find(x=>x.id===el.dataset.id);
+      if(r) r[el.dataset.field] = v;
+    } else if(t==='sector-last'){
+      const s = w.sections.sectors.find(x=>x.id===el.dataset.sectorId);
+      if(s) s.lastWeek = v;
+    } else if(t==='sector-week'){
+      const s = w.sections.sectors.find(x=>x.id===el.dataset.sectorId);
+      if(s){
+        const r = s.thisWeek.find(x=>x.id===el.dataset.id);
+        if(r) r[el.dataset.field] = v;
+      }
+    } else if(t==='other'){
+      const r = w.sections.others.find(x=>x.id===el.dataset.id);
+      if(r) r[el.dataset.field] = v;
+    }
+    w.updatedAt = Date.now();
+    debouncedPersist();
+  }
+
+  function handleAction(el){
+    const w = currentWeek(); if(!w) return;
+    const a = el.dataset.action;
+    let focusId = null;
+
+    switch(a){
+      case 'add-discussion': {
+        const r = newDiscussionRow();
+        w.sections.discussions.push(r); focusId = r.id; break;
+      }
+      case 'del-discussion':
+        w.sections.discussions = w.sections.discussions.filter(x=>x.id!==el.dataset.id); break;
+      case 'add-week-row': {
+        const s = w.sections.sectors.find(x=>x.id===el.dataset.sectorId);
+        if(s){ const r = newScheduleRow(); s.thisWeek.push(r); focusId = r.id; }
+        break;
+      }
+      case 'del-week-row': {
+        const s = w.sections.sectors.find(x=>x.id===el.dataset.sectorId);
+        if(s) s.thisWeek = s.thisWeek.filter(x=>x.id!==el.dataset.id);
+        break;
+      }
+      case 'add-other': {
+        const r = newOtherRow();
+        w.sections.others.push(r); focusId = r.id; break;
+      }
+      case 'del-other':
+        w.sections.others = w.sections.others.filter(x=>x.id!==el.dataset.id); break;
+      case 'prefill-week': {
+        const s = w.sections.sectors.find(x=>x.id===el.dataset.sectorId);
+        if(s){
+          const start = w.dateStart || todayISO();
+          const days = ['월','화','수','목','금'];
+          const newRows = days.map((d,i)=>({
+            id: uid(),
+            day: d,
+            date: fmtMD(isoAddDays(start, i)),
+            task: ''
+          }));
+          s.thisWeek = [...s.thisWeek, ...newRows];
+        }
+        break;
+      }
+    }
+
+    w.updatedAt = Date.now();
+    renderMain();
+    persist();
+
+    if(focusId){
+      requestAnimationFrame(()=>{
+        const el = document.querySelector(`input[data-id="${focusId}"], select[data-id="${focusId}"], textarea[data-id="${focusId}"]`);
+        if(el) el.focus();
+      });
+    }
+  }
+
+  /* ===== CRUD: weeks ===== */
+  function addWeek(){
+    const w = newWeek();
+    state.weeks.push(w);
+    state.currentId = w.id;
+    renderSidebar();
+    renderMain();
+    persist();
+  }
+  function selectWeek(id){
+    state.currentId = id;
+    renderSidebar();
+    renderMain();
+  }
+  function deleteWeek(id){
+    const w = state.weeks.find(x=>x.id===id); if(!w) return;
+    if(!confirm(`"${w.weekTitle}" 보고를 삭제할까요?\n삭제된 내용은 복구할 수 없습니다.`)) return;
+    state.weeks = state.weeks.filter(x=>x.id!==id);
+    if(state.currentId===id) state.currentId = null;
+    renderSidebar(); renderMain(); persist();
+  }
+  function deleteCurrent(){ if(state.currentId) deleteWeek(state.currentId); }
+  function printWeek(){ window.print(); }
+
+  function downloadPDF(){
+    const w = currentWeek();
+    if(!w){ alert('선택된 주차가 없습니다.'); return; }
+    if(typeof html2pdf === 'undefined'){
+      alert('PDF 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.');
+      return;
+    }
+
+    const target = document.querySelector('.main-inner');
+    if(!target) return;
+
+    const btn = document.querySelector('.foot-btn.primary');
+    const originalLabel = btn ? btn.textContent : '';
+    if(btn){ btn.disabled = true; btn.textContent = 'PDF 생성 중...'; }
+
+    document.body.classList.add('pdf-mode');
+
+    const safe = (s)=> String(s||'').replace(/[\\/:*?"<>|]/g,'_').trim();
+    const filename = `[주간보고]_${safe(w.weekTitle)||'N주차'}_${safe(w.dateStart)||''}.pdf`;
+
+    const opt = {
+      margin: [12, 10, 14, 10],
+      filename,
+      image: { type:'jpeg', quality:0.98 },
+      html2canvas: { scale:2, useCORS:true, backgroundColor:'#FBF8F1', windowWidth: target.scrollWidth },
+      jsPDF: { unit:'mm', format:'a4', orientation:'portrait', compress:true },
+      pagebreak: { mode:['avoid-all','css','legacy'], avoid:['.section','.sector-card','tr'] }
+    };
+
+    html2pdf().set(opt).from(target).save()
+      .then(()=>{
+        document.body.classList.remove('pdf-mode');
+        if(btn){ btn.disabled = false; btn.textContent = originalLabel; }
+      })
+      .catch(err=>{
+        document.body.classList.remove('pdf-mode');
+        if(btn){ btn.disabled = false; btn.textContent = originalLabel; }
+        console.error('PDF generation failed', err);
+        alert('PDF 생성 중 오류가 발생했습니다. 콘솔을 확인해 주세요.');
+      });
+  }
+
+  /* ===== Save status flags ===== */
+  function flagSaving(){
+    const s = document.getElementById('saveStatus'); if(!s) return;
+    s.classList.add('saving');
+    s.querySelector('.txt').textContent = '저장 중...';
+  }
+  function flagSaved(){
+    const s = document.getElementById('saveStatus'); if(!s) return;
+    s.classList.remove('saving');
+    s.querySelector('.txt').textContent = '저장됨';
+  }
+
+  window.addWeek = addWeek;
+  window.deleteCurrent = deleteCurrent;
+  window.printWeek = printWeek;
+  window.downloadPDF = downloadPDF;
+
+  /* ===== Init ===== */
+  (async function init(){
+    await loadState();
+    renderSidebar();
+    renderMain();
+  })();
+</script>

@@ -1,0 +1,251 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --font-sans: 'Pretendard', var(--font-pretendard-fallback), -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: var(--font-noto-serif-kr), 'Noto Serif KR', serif;
+  --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', 'D2Coding', monospace;
+  --font-heading: var(--font-sans);
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* ============================================================
+   행정안전부 신뢰감 톤 — Primary: #003478 (행안부 공식 네이비)
+   ============================================================ */
+:root {
+  --background: #FFFFFF;
+  --foreground: #0F172A;
+
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
+
+  --popover: #FFFFFF;
+  --popover-foreground: #0F172A;
+
+  --primary: #003478;
+  --primary-foreground: #FFFFFF;
+
+  --secondary: #F1F5F9;
+  --secondary-foreground: #0F172A;
+
+  --muted: #F8FAFC;
+  --muted-foreground: #64748B;
+
+  --accent: #EFF6FF;
+  --accent-foreground: #003478;
+
+  --destructive: #B91C1C;
+  --success: #15803D;
+
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #003478;
+
+  --chart-1: #003478;
+  --chart-2: #1E3A8A;
+  --chart-3: #1D4ED8;
+  --chart-4: #3B82F6;
+  --chart-5: #93C5FD;
+
+  --radius: 0.5rem;
+
+  --sidebar: #F1F5F9;
+  --sidebar-foreground: #0F172A;
+  --sidebar-primary: #003478;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #FFFFFF;
+  --sidebar-accent-foreground: #003478;
+  --sidebar-border: #CBD5E1;
+  --sidebar-ring: #003478;
+}
+
+.dark {
+  --background: #0B1220;
+  --foreground: #F1F5F9;
+
+  --card: #111827;
+  --card-foreground: #F1F5F9;
+
+  --popover: #111827;
+  --popover-foreground: #F1F5F9;
+
+  --primary: #2563EB;
+  --primary-foreground: #FFFFFF;
+
+  --secondary: #1F2937;
+  --secondary-foreground: #F1F5F9;
+
+  --muted: #1F2937;
+  --muted-foreground: #94A3B8;
+
+  --accent: #1E293B;
+  --accent-foreground: #93C5FD;
+
+  --destructive: #EF4444;
+  --success: #22C55E;
+
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.15);
+  --ring: #2563EB;
+
+  --sidebar: #0F172A;
+  --sidebar-foreground: #F1F5F9;
+  --sidebar-primary: #2563EB;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #1E293B;
+  --sidebar-accent-foreground: #F1F5F9;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #2563EB;
+}
+
+/* ============================================================
+   미리보기 모드 — 행안부 공문서 톤 (종이 + 세리프 + 흑백)
+   ============================================================ */
+.preview-mode {
+  --background: #EEEEF1;
+  --foreground: #111827;
+  --card: #FFFFFF;
+  --card-foreground: #111827;
+  --muted: #F3F4F6;
+  --muted-foreground: #4B5563;
+  --border: #111827;
+  --input: #D1D5DB;
+  --accent: #FFFFFF;
+  --accent-foreground: #003478;
+  --secondary: #E5E7EB;
+}
+
+.preview-mode body {
+  font-family: var(--font-serif);
+}
+
+.preview-mode .font-mono,
+.preview-mode [class*="font-mono"] {
+  font-family: var(--font-mono);
+}
+
+.preview-mode header,
+.preview-mode aside {
+  background: #FFFFFF;
+}
+
+/* 메인 캔버스를 A4 종이처럼 */
+.preview-mode main > div {
+  background: #FFFFFF;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
+  border: 1px solid #D1D5DB;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: 'ss01', 'ss02';
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.18s ease, color 0.18s ease;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* ============================================================
+   PDF 인쇄 — 미리보기 캔버스만 출력
+   ============================================================ */
+@media print {
+  @page {
+    size: A4;
+    margin: 1.5cm;
+  }
+
+  /* 모든 요소: 배경색/글자색을 그대로 출력 (옅은 남색 등 보존) */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  html,
+  body {
+    background: #FFFFFF !important;
+    overflow: visible !important;
+  }
+
+  body {
+    font-family: var(--font-serif);
+  }
+
+  main {
+    overflow: visible !important;
+    background: transparent !important;
+  }
+
+  /* 페이지 경계에서 카드/섹션/표가 잘리지 않게 */
+  section,
+  article,
+  table,
+  tr,
+  thead,
+  tbody {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* h1, h2 다음에는 페이지 break가 걸리지 않게 */
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+}
