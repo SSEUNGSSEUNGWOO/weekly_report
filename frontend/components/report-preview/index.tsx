@@ -82,20 +82,13 @@ export function ReportPreview({ report }: Props) {
                         <p className="text-[12px] text-muted-foreground">{DASH}</p>
                       ) : (
                         <DocTable
-                          headers={[
-                            "요일",
-                            "날짜",
-                            "과업 내용",
-                            "완료 예정일",
-                            "완료 일자",
-                          ]}
-                          colWidths={["10%", "13%", "44%", "16%", "17%"]}
+                          headers={["요일", "날짜", "과업 내용", "완료 예정일"]}
+                          colWidths={["10%", "14%", "58%", "18%"]}
                           rows={area.plans.map((p) => [
                             p.weekday || DASH,
                             p.date || DASH,
                             p.task || DASH,
                             p.dueDate || DASH,
-                            p.doneDate || DASH,
                           ])}
                           dense
                         />

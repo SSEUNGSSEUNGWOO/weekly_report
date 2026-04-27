@@ -40,7 +40,6 @@ export type PlanRow = {
   date: string;          // 자유 텍스트 (예: "1.27")
   task: string;
   dueDate: string;       // 완료 예정일 (월/일, 예: "4.30")
-  doneDate: string;      // 실제 완료 일자 (월/일, 예: "4.29")
 };
 
 export type ProgramArea = {
