@@ -442,7 +442,7 @@ function Hero({
           </div>
           <p className="mt-1.5 text-[12px] leading-[1.75] text-muted-foreground">
             본 자료는{" "}
-            <strong className="text-foreground">㈜케이브레인</strong>의
+            <strong className="text-foreground">㈜케이브레인컴퍼니</strong>의
             자산이며, 사업 수행을 위한 내부 작성용 문서입니다. 무단 복제·배포·외부
             유출 시{" "}
             <span className="font-medium text-foreground">
