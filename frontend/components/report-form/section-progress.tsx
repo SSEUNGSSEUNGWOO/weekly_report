@@ -69,7 +69,14 @@ function AreaCard({
   const addPlan = () =>
     setPlans([
       ...value.plans,
-      { id: newRowId(), weekday: "", date: "", task: "", dueDate: "" },
+      {
+        id: newRowId(),
+        weekday: "",
+        date: "",
+        task: "",
+        dueDate: "",
+        doneDate: "",
+      },
     ]);
 
   const addWeekdays = () => {
@@ -82,6 +89,7 @@ function AreaCard({
         date: "",
         task: "",
         dueDate: "",
+        doneDate: "",
       }));
     setPlans([...value.plans, ...additions]);
   };
@@ -103,9 +111,9 @@ function AreaCard({
         </h3>
       </header>
 
-      <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-2">
-        {/* 좌측: 지난주 추진 실적 */}
-        <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-3">
+        {/* 좌측: 지난주 추진 실적 (1/3) */}
+        <div className="flex flex-col gap-2 lg:col-span-1">
           <span className="font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
             지난주 추진 실적
           </span>
@@ -117,8 +125,8 @@ function AreaCard({
           />
         </div>
 
-        {/* 우측: 금주 추진 계획 */}
-        <div className="flex flex-col gap-2">
+        {/* 우측: 금주 추진 계획 (2/3) */}
+        <div className="flex flex-col gap-2 lg:col-span-2">
           <div className="flex items-center justify-between">
             <span className="font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
               금주 추진 계획
@@ -149,10 +157,18 @@ function AreaCard({
             </Button>
           ) : (
             <div className="flex flex-col gap-1.5">
+              <div className="grid grid-cols-[64px_60px_1fr_64px_64px_32px] gap-1.5 px-1 text-[10.5px] font-medium tracking-[-0.005em] text-muted-foreground">
+                <div>요일</div>
+                <div>날짜</div>
+                <div>해야할 일</div>
+                <div>완료 예정일</div>
+                <div>완료 일자</div>
+                <div />
+              </div>
               {value.plans.map((p) => (
                 <div
                   key={p.id}
-                  className="grid grid-cols-12 items-center gap-1.5"
+                  className="grid grid-cols-[64px_60px_1fr_64px_64px_32px] items-center gap-1.5"
                 >
                   <Select
                     value={p.weekday}
@@ -160,7 +176,7 @@ function AreaCard({
                       updatePlan(p.id, { weekday: v as WeekDay })
                     }
                   >
-                    <SelectTrigger className="col-span-2 h-9 text-[12px]">
+                    <SelectTrigger className="h-9 text-[12px]">
                       <SelectValue placeholder="요일" />
                     </SelectTrigger>
                     <SelectContent>
@@ -172,7 +188,7 @@ function AreaCard({
                     </SelectContent>
                   </Select>
                   <Input
-                    className="col-span-2 h-9 text-[12px]"
+                    className="h-9 text-[12px]"
                     placeholder="1.27"
                     value={p.date}
                     onChange={(e) =>
@@ -180,7 +196,7 @@ function AreaCard({
                     }
                   />
                   <Input
-                    className="col-span-5 h-9 text-[12px]"
+                    className="h-9 text-[12px]"
                     placeholder="과업 내용"
                     value={p.task}
                     onChange={(e) =>
@@ -188,18 +204,26 @@ function AreaCard({
                     }
                   />
                   <Input
-                    type="date"
-                    className="col-span-2 h-9 text-[11px]"
+                    className="h-9 text-[12px]"
+                    placeholder="M.D"
                     value={p.dueDate}
                     onChange={(e) =>
                       updatePlan(p.id, { dueDate: e.target.value })
+                    }
+                  />
+                  <Input
+                    className="h-9 text-[12px]"
+                    placeholder="M.D"
+                    value={p.doneDate ?? ""}
+                    onChange={(e) =>
+                      updatePlan(p.id, { doneDate: e.target.value })
                     }
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="col-span-1 size-9 p-0 text-muted-foreground hover:text-destructive"
+                    className="size-9 p-0 text-muted-foreground hover:text-destructive"
                     onClick={() => removePlan(p.id)}
                     aria-label="계획 삭제"
                   >
