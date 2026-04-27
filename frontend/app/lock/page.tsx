@@ -50,8 +50,8 @@ export default function LockPage() {
               className="h-8 w-auto"
             />
 
-            <p className="mt-7 font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-primary">
-              행정안전부
+            <p className="mt-7 font-mono text-[10.5px] font-medium tracking-[0.14em] text-primary">
+              행정안전부 · 한국지능정보사회진흥원
             </p>
             <h1 className="mt-2 font-serif text-[19px] font-bold leading-[1.35] tracking-[-0.01em] text-foreground">
               2026년 AI·데이터기반행정
