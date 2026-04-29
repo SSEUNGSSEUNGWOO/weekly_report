@@ -16,6 +16,7 @@ import { AppSidebar, type Week } from "@/components/app-sidebar";
 import { ReportForm } from "@/components/report-form";
 import { ReportPreview } from "@/components/report-preview";
 import { SiteHeader, type Mode, type SaveStatus } from "@/components/site-header";
+import { AnnualRoadmap } from "@/components/annual-roadmap";
 import {
   type WeeklyReport,
 } from "@/lib/report-types";
@@ -407,6 +408,7 @@ function Hero({
   hasWeeks: boolean;
 }) {
   return (
+    <div className="flex flex-col">
     <div className="mx-auto flex w-full max-w-3xl flex-col items-stretch px-10 py-16">
       <span className="font-mono text-[10.5px] font-medium uppercase tracking-[0.14em] text-primary">
         {hasWeeks ? "주차를 선택하세요" : "새 보고서를 시작하세요"}
@@ -452,6 +454,10 @@ function Hero({
           </p>
         </div>
       </aside>
+    </div>
+    <div className="w-full px-10 pb-16">
+      <AnnualRoadmap />
+    </div>
     </div>
   );
 }
