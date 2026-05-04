@@ -26,7 +26,7 @@ import {
   upsertReport,
   createWeek,
   deleteReport,
-} from "@/lib/supabase/reports";
+} from "@/lib/db/reports";
 
 type ThisWeekMeta = ReturnType<typeof thisWeekMeta>;
 

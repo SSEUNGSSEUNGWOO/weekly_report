@@ -9,7 +9,7 @@ import {
   updateRoadmapItemText,
   addRoadmapItem,
   deleteRoadmapItem,
-} from "@/lib/supabase/roadmap";
+} from "@/lib/db/roadmap";
 
 const MONTHS = [4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 type Month = (typeof MONTHS)[number];

@@ -7,7 +7,6 @@
 ```
 weekly_report/
 ├── frontend/      Next.js 16 (App Router) + TypeScript + Tailwind v4 + shadcn/ui
-├── supabase/      DB 마이그레이션 / 가이드 (클라우드 프로젝트 연결)
 ├── mockup/        초기 디자인 mockup HTML (참고용, 빌드에 미포함)
 └── 2026_주간보고_템플릿.html   원본 행안부 공문서 템플릿 (참고용)
 ```
@@ -26,7 +25,7 @@ npm run dev          # http://localhost:3000
 - **React 19**
 - **Tailwind CSS v4** — `@theme inline` 문법, `globals.css`에서 토큰 정의
 - **shadcn/ui** — `components/ui/` 디렉토리. 추가 컴포넌트는 `npx shadcn@latest add <name>`
-- **Supabase** — `@supabase/ssr` 사용. 클라우드 프로젝트 (URL: `vivjixyaqicryuqwfuit`)
+- **Neon + Drizzle ORM** — `@neondatabase/serverless` + `drizzle-orm`. 스키마: `frontend/lib/db/schema.ts`
 
 ## 색상 토큰 (행안부 신뢰감 톤)
 
@@ -61,25 +60,26 @@ components/
 
 레이아웃: 상단 헤더 → 주차 탭 → 좌(메인 캔버스) + 우(메타 패널). 사이드바 없음.
 
-## Supabase 사용
+## 데이터베이스
+
+Neon PostgreSQL (무료 티어) + Drizzle ORM.
 
 ```ts
-// 클라이언트 컴포넌트
-import { createClient } from "@/lib/supabase/client";
-const supabase = createClient();
-
-// 서버 컴포넌트 / 액션
-import { createClient } from "@/lib/supabase/server";
-const supabase = await createClient();
+// 서버 컴포넌트 / 데이터 레이어
+import { db } from "@/lib/db";
+import { reports, roadmapItems } from "@/lib/db/schema";
 ```
 
-`.env.local`에 URL과 anon key. **커밋 금지** (이미 `.gitignore`에 포함됨).
+- 스키마 정의: `frontend/lib/db/schema.ts`
+- DB 연결: `frontend/lib/db/index.ts`
+- 데이터 레이어: `frontend/lib/db/reports.ts`, `frontend/lib/db/roadmap.ts`
+- `.env.local`에 `DATABASE_URL` 설정. **커밋 금지** (이미 `.gitignore`에 포함됨).
 
-세션 갱신은 `frontend/proxy.ts`가 담당 (Next.js 16의 proxy 컨벤션).
+접근 제어는 `frontend/proxy.ts`의 ACCESS_CODE 게이트로 처리 (Next.js 16의 proxy 컨벤션).
 
 ## 작업 규칙
 
 - 모든 한국어 라벨/문구는 행정 톤(겸양체, 정확한 명사) 유지
-- mock 데이터는 컴포넌트 내부 상수로만 두고, 실제 데이터는 Supabase에서
+- mock 데이터는 컴포넌트 내부 상수로만 두고, 실제 데이터는 DB에서
 - 새 shadcn 컴포넌트 추가 시 `--yes` 또는 `-d` 옵션으로 prompt 회피
 - 빌드 검증: `npm run build` (TypeScript + Turbopack)

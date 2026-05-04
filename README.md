@@ -15,7 +15,7 @@ npm run dev
 ## 스택
 
 - **Frontend**: Next.js 16 + React 19 + TypeScript + Tailwind CSS v4 + shadcn/ui
-- **DB / Auth**: Supabase (클라우드)
+- **DB**: Neon PostgreSQL (무료 티어) + Drizzle ORM
 - **폰트**: Pretendard, Noto Serif KR, JetBrains Mono
 - **테마**: 행안부 공식 네이비 `#003478` 기반 신뢰감 톤
 
@@ -24,8 +24,8 @@ npm run dev
 `frontend/.env.local` 파일 필요:
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+DATABASE_URL=postgresql://...
+ACCESS_CODE=...
 ```
 
 (`.env.example` 참조)
@@ -35,7 +35,6 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 ```
 weekly_report/
 ├── frontend/      Next.js 앱
-├── supabase/      DB 마이그레이션
 ├── mockup/        초기 디자인 mockup (참고용)
 └── CLAUDE.md      프로젝트 작업 가이드
 ```

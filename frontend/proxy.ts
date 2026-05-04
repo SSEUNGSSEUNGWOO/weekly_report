@@ -1,5 +1,4 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { updateSession } from "@/lib/supabase/middleware";
 
 const PUBLIC_PATHS = ["/lock"];
 const PUBLIC_API_PREFIXES = ["/api/auth"];
@@ -21,7 +20,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  return await updateSession(request);
+  return NextResponse.next();
 }
 
 export const config = {
