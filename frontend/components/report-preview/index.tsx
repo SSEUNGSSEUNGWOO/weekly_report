@@ -117,7 +117,7 @@ export function ReportPreview({ report }: Props) {
 
       {/* 푸터 */}
       <footer className="mt-12 border-t border-foreground pt-3 text-center font-mono text-[10px] text-muted-foreground">
-        — 본 문서는 행정안전부 AI·데이터기반행정 역량강화 사업 주간업무보고 양식입니다 —
+        — 본 문서는 행정안전부 · 한국지능정보사회진흥원 AI·데이터기반행정 역량강화 사업 주간업무보고 양식입니다 —
       </footer>
     </div>
   );
