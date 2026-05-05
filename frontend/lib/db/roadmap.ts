@@ -1,3 +1,5 @@
+"use server";
+
 import { eq, asc, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { roadmapItems } from "@/lib/db/schema";

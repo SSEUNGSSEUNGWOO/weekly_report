@@ -1,3 +1,5 @@
+"use server";
+
 import { eq, asc, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { reports } from "@/lib/db/schema";
