@@ -1,16 +1,20 @@
 import {
   type WeeklyReport,
+  type ReportAttachment,
   PROGRAM_AREAS,
 } from "@/lib/report-types";
 
 type Props = {
   report: WeeklyReport;
+  attachments?: ReportAttachment[];
 };
 
 const DASH = "—";
 
-export function ReportPreview({ report }: Props) {
+export function ReportPreview({ report, attachments = [] }: Props) {
   const { meta, discussions, areas, miscs } = report;
+  const minutesAtts = attachments.filter((a) => a.kind === "minutes");
+  const fileAtts = attachments.filter((a) => a.kind === "file");
 
   return (
     <div className="mx-auto my-10 w-full max-w-[210mm] bg-white px-12 py-14 font-serif text-[12.5px] leading-[1.7] text-foreground shadow-[0_4px_24px_rgba(15,23,42,0.08)] ring-1 ring-border print:my-0 print:shadow-none print:ring-0">
@@ -83,7 +87,8 @@ export function ReportPreview({ report }: Props) {
                       ) : (
                         <DocTable
                           headers={["요일", "날짜", "과업 내용", "완료 예정일"]}
-                          colWidths={["10%", "14%", "58%", "18%"]}
+                          colWidths={["14%", "16%", "48%", "22%"]}
+                          centerColumns={[0, 1, 3]}
                           rows={area.plans.map((p) => [
                             p.weekday || DASH,
                             p.date || DASH,
@@ -110,10 +115,25 @@ export function ReportPreview({ report }: Props) {
           <DocTable
             headers={["구분", "내용", "상태"]}
             colWidths={["18%", "62%", "20%"]}
+            centerColumns={[0, 2]}
             rows={miscs.map((m) => [m.type || DASH, m.content || DASH, m.status || DASH])}
           />
         )}
       </Section>
+
+      {/* 섹션 04 — 첨부가 있을 때만 노출 */}
+      {fileAtts.length > 0 && (
+        <Section number="04" title="파일 첨부">
+          <AttachmentList items={fileAtts} />
+        </Section>
+      )}
+
+      {/* 섹션 05 — 첨부가 있을 때만 노출 */}
+      {minutesAtts.length > 0 && (
+        <Section number="05" title="회의록 첨부">
+          <AttachmentList items={minutesAtts} />
+        </Section>
+      )}
 
       {/* 푸터 */}
       <footer className="mt-12 border-t border-foreground pt-3 text-center font-mono text-[10px] text-muted-foreground">
@@ -164,6 +184,26 @@ function Section({
   );
 }
 
+function AttachmentList({ items }: { items: ReportAttachment[] }) {
+  return (
+    <ul className="border border-foreground">
+      {items.map((a, idx) => (
+        <li
+          key={a.id}
+          className={`flex items-center gap-3 px-3 py-2 text-[12px] ${
+            idx === items.length - 1 ? "" : "border-b border-foreground"
+          }`}
+        >
+          <span className="shrink-0 font-bold tabular-nums">
+            첨부{idx + 1}.
+          </span>
+          <span className="truncate">{a.filename}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function EmptyText({ children }: { children: React.ReactNode }) {
   return (
     <p className="border border-dashed border-muted-foreground bg-muted/40 px-4 py-6 text-center text-[12px] text-muted-foreground">
@@ -177,13 +217,15 @@ function DocTable({
   rows,
   colWidths,
   dense = false,
+  centerColumns = [0],
 }: {
   headers: string[];
   rows: (string | number)[][];
   colWidths?: string[];
   dense?: boolean;
+  centerColumns?: number[];
 }) {
-  const cellPad = dense ? "px-2 py-1.5" : "px-3 py-2.5";
+  const cellPad = dense ? "px-1.5 py-1.5" : "px-3 py-2.5";
   return (
     <table className="w-full table-fixed border-collapse border border-foreground text-[12px]">
       {colWidths && (
@@ -198,7 +240,8 @@ function DocTable({
           {headers.map((h) => (
             <th
               key={h}
-              className={`border border-foreground bg-muted text-center font-bold tracking-[-0.005em] ${cellPad}`}
+              style={{ textAlign: "center" }}
+              className={`break-keep border border-foreground bg-muted font-bold tracking-[-0.005em] ${cellPad}`}
             >
               {h}
             </th>
@@ -208,16 +251,20 @@ function DocTable({
       <tbody>
         {rows.map((row, ri) => (
           <tr key={ri}>
-            {row.map((cell, ci) => (
-              <td
-                key={ci}
-                className={`border border-foreground align-top ${cellPad} ${
-                  ci === 0 ? "text-center font-medium" : ""
-                }`}
-              >
-                <span className="block whitespace-pre-wrap">{cell}</span>
-              </td>
-            ))}
+            {row.map((cell, ci) => {
+              const isCentered = centerColumns.includes(ci);
+              return (
+                <td
+                  key={ci}
+                  style={isCentered ? { textAlign: "center" } : undefined}
+                  className={`border border-foreground align-top ${cellPad} ${
+                    ci === 0 ? "font-medium" : ""
+                  }`}
+                >
+                  <span className="whitespace-pre-wrap break-keep">{cell}</span>
+                </td>
+              );
+            })}
           </tr>
         ))}
       </tbody>

@@ -14,9 +14,12 @@ export function TodayClock({ onClick, active = false }: Props) {
   const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
-    setNow(new Date());
+    const raf = requestAnimationFrame(() => setNow(new Date()));
     const id = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(id);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearInterval(id);
+    };
   }, []);
 
   const content = (

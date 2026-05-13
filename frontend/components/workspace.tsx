@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Loader2, ShieldAlert } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,8 +18,10 @@ import { ReportForm } from "@/components/report-form";
 import { ReportPreview } from "@/components/report-preview";
 import { SiteHeader, type Mode, type SaveStatus } from "@/components/site-header";
 import { AnnualRoadmap } from "@/components/annual-roadmap";
+import { TrashDialog } from "@/components/trash-dialog";
 import {
   type WeeklyReport,
+  type ReportAttachment,
 } from "@/lib/report-types";
 import {
   listWeeks,
@@ -26,7 +29,10 @@ import {
   upsertReport,
   createWeek,
   deleteReport,
+  restoreReport,
 } from "@/lib/db/reports";
+import { listAttachments } from "@/lib/db/attachments";
+import { purgeExpired } from "@/lib/db/trash";
 
 type ThisWeekMeta = ReturnType<typeof thisWeekMeta>;
 
@@ -35,6 +41,9 @@ const SAVE_DEBOUNCE_MS = 600;
 export function Workspace() {
   const [weeks, setWeeks] = useState<Week[]>([]);
   const [reports, setReports] = useState<Record<string, WeeklyReport>>({});
+  const [attachmentsByReport, setAttachmentsByReport] = useState<
+    Record<string, ReportAttachment[]>
+  >({});
   const [activeId, setActiveId] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>("edit");
   const [loading, setLoading] = useState(true);
@@ -45,6 +54,7 @@ export function Workspace() {
     nextSuffixIndex: number;
   } | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<Week | null>(null);
+  const [trashOpen, setTrashOpen] = useState(false);
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -53,6 +63,10 @@ export function Workspace() {
     let cancelled = false;
     (async () => {
       try {
+        // 30일 지난 휴지통 항목 백그라운드 정리 (실패해도 본 로드는 진행)
+        purgeExpired().catch((err) =>
+          console.error("[purgeExpired]", err),
+        );
         const list = await listWeeks();
         if (!cancelled) setWeeks(list);
       } catch (err) {
@@ -81,8 +95,30 @@ export function Workspace() {
     };
   }, [activeId, reports]);
 
+  /* ─── 활성 주차 변경 시 첨부 lazy fetch ─ */
+  useEffect(() => {
+    if (!activeId || attachmentsByReport[activeId]) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const list = await listAttachments(activeId);
+        if (!cancelled) {
+          setAttachmentsByReport((prev) => ({ ...prev, [activeId]: list }));
+        }
+      } catch (err) {
+        console.error("[listAttachments]", err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeId, attachmentsByReport]);
+
   const activeWeek = weeks.find((w) => w.id === activeId) ?? null;
   const activeReport = activeId ? (reports[activeId] ?? null) : null;
+  const activeAttachments = activeId
+    ? (attachmentsByReport[activeId] ?? [])
+    : [];
 
   /* ─── 입력 변경 → 메모리 업데이트 + debounce 저장 ─ */
   const updateActiveReport = (next: WeeklyReport) => {
@@ -125,6 +161,7 @@ export function Workspace() {
       });
       setWeeks((prev) => [...prev, week].sort(sortWeeks));
       setReports((prev) => ({ ...prev, [report.id]: report }));
+      setAttachmentsByReport((prev) => ({ ...prev, [report.id]: [] }));
       setActiveId(week.id);
     } catch (err) {
       console.error("[createWeek]", err);
@@ -199,19 +236,62 @@ export function Workspace() {
 
   const confirmDelete = async () => {
     if (!deleteDialog) return;
-    const id = deleteDialog.id;
+    const week = deleteDialog;
     setDeleteDialog(null);
     try {
-      await deleteReport(id);
-      setWeeks((prev) => prev.filter((w) => w.id !== id));
+      await deleteReport(week.id);
+      // 메모리 캐시에서 즉시 제거 (DB는 soft delete 상태)
+      setWeeks((prev) => prev.filter((w) => w.id !== week.id));
       setReports((prev) => {
         const next = { ...prev };
-        delete next[id];
+        delete next[week.id];
         return next;
       });
-      if (activeId === id) setActiveId(null);
+      setAttachmentsByReport((prev) => {
+        const next = { ...prev };
+        delete next[week.id];
+        return next;
+      });
+      if (activeId === week.id) setActiveId(null);
+
+      toast(`"${week.title}" 보고서를 휴지통으로 이동했습니다`, {
+        description: "30일 후 자동으로 영구 삭제됩니다.",
+        action: {
+          label: "되돌리기",
+          onClick: async () => {
+            try {
+              await restoreReport(week.id);
+              setWeeks((prev) => [...prev, week].sort(sortWeeks));
+              toast.success(`"${week.title}" 보고서를 복원했습니다`);
+            } catch (err) {
+              console.error("[restoreReport]", err);
+              toast.error("복원에 실패했습니다");
+            }
+          },
+        },
+      });
     } catch (err) {
       console.error("[deleteReport]", err);
+      toast.error("삭제에 실패했습니다");
+    }
+  };
+
+  /* ─── 첨부 변경 (낙관적 업데이트) ─────────────────── */
+  const updateActiveAttachments = (next: ReportAttachment[]) => {
+    if (!activeWeek) return;
+    setAttachmentsByReport((prev) => ({ ...prev, [activeWeek.id]: next }));
+  };
+
+  /* ─── 사이드바 트리: 다른 주차 펼침 시 lazy fetch ─ */
+  const ensureAttachmentsLoaded = async (reportId: string) => {
+    if (attachmentsByReport[reportId]) return;
+    try {
+      const list = await listAttachments(reportId);
+      setAttachmentsByReport((prev) =>
+        prev[reportId] ? prev : { ...prev, [reportId]: list },
+      );
+    } catch (err) {
+      console.error("[listAttachments:expand]", err);
     }
   };
 
@@ -248,10 +328,13 @@ export function Workspace() {
       <AppSidebar
         weeks={weeks}
         activeId={activeId}
+        attachmentsByReport={attachmentsByReport}
         onSelect={setActiveId}
         onCreateNew={handleCreateNew}
         onGoHome={handleGoHome}
         onDelete={requestDelete}
+        onExpandWeek={ensureAttachmentsLoaded}
+        onOpenTrash={() => setTrashOpen(true)}
       />
       <SidebarInset className="flex h-screen flex-col overflow-hidden">
         <SiteHeader
@@ -275,11 +358,14 @@ export function Workspace() {
                 key={`${activeWeek.id}-edit`}
                 report={activeReport}
                 onChange={updateActiveReport}
+                attachments={activeAttachments}
+                onAttachmentsChange={updateActiveAttachments}
               />
             ) : (
               <ReportPreview
                 key={`${activeWeek.id}-preview`}
                 report={activeReport}
+                attachments={activeAttachments}
               />
             )
           ) : (
@@ -354,6 +440,32 @@ export function Workspace() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {trashOpen && (
+        <TrashDialog
+          open={trashOpen}
+          onOpenChange={setTrashOpen}
+          onRestored={async () => {
+          // 휴지통에서 복원하면 메인 목록도 새로고침
+          try {
+            const list = await listWeeks();
+            setWeeks(list);
+          } catch (err) {
+            console.error("[listWeeks:after-restore]", err);
+          }
+          if (activeId) {
+            try {
+              const atts = await listAttachments(activeId);
+              setAttachmentsByReport((prev) => ({
+                ...prev,
+                [activeId]: atts,
+              }));
+            } catch (err) {
+              console.error("[listAttachments:after-restore]", err);
+            }
+          }
+        }}
+        />
+      )}
     </SidebarProvider>
   );
 }

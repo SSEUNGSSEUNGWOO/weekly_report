@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Serif_KR, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "@/components/ui/sonner";
 
 const notoSerifKr = Noto_Serif_KR({
   variable: "--font-noto-serif-kr",
@@ -32,7 +33,10 @@ export default function RootLayout({
       lang="ko"
       className={`${notoSerifKr.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <Toaster position="bottom-right" duration={5000} closeButton />
+      </body>
     </html>
   );
 }

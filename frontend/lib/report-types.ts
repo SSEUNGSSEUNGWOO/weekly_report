@@ -74,6 +74,24 @@ export type MiscRow = {
   status: MiscStatus | "";
 };
 
+/* ─── 섹션 04 회의록 첨부 / 05 파일 첨부 ───────────────── */
+export type AttachmentKind = "minutes" | "file";
+
+export const ATTACHMENT_KINDS: AttachmentKind[] = ["minutes", "file"];
+
+export type ReportAttachment = {
+  id: string;
+  reportId: string;
+  kind: AttachmentKind;
+  filename: string;
+  contentType: string;
+  size: number;
+  blobUrl: string;
+  blobPathname: string;
+  sortOrder: number;
+  uploadedAt: string;
+};
+
 /* ─── 보고서 전체 ─────────────────────────────────────── */
 export type WeeklyReport = {
   id: string;

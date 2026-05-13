@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, asc, sql } from "drizzle-orm";
+import { eq, asc, sql, isNull, and } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { reports } from "@/lib/db/schema";
 import {
@@ -36,6 +36,7 @@ export async function listWeeks(): Promise<Week[]> {
       status: reports.status,
     })
     .from(reports)
+    .where(isNull(reports.deletedAt))
     .orderBy(asc(reports.year), asc(reports.month), asc(reports.weekInMonth));
 
   return rows.map((r) => ({
@@ -55,7 +56,7 @@ export async function getReport(id: string): Promise<WeeklyReport | null> {
   const rows = await db
     .select()
     .from(reports)
-    .where(eq(reports.id, id))
+    .where(and(eq(reports.id, id), isNull(reports.deletedAt)))
     .limit(1);
 
   if (rows.length === 0) return null;
@@ -145,9 +146,20 @@ export async function createWeek(
   return { week, report };
 }
 
-/* ─── 보고서 삭제 ─────────────────────────────────────── */
+/* ─── 보고서 소프트 삭제 ─────────────────────────────── */
 export async function deleteReport(id: string): Promise<void> {
-  await db.delete(reports).where(eq(reports.id, id));
+  await db
+    .update(reports)
+    .set({ deletedAt: new Date() })
+    .where(eq(reports.id, id));
+}
+
+/* ─── 보고서 복원 ─────────────────────────────────────── */
+export async function restoreReport(id: string): Promise<void> {
+  await db
+    .update(reports)
+    .set({ deletedAt: null })
+    .where(eq(reports.id, id));
 }
 
 /* ─── 헬퍼 ────────────────────────────────────────────── */
