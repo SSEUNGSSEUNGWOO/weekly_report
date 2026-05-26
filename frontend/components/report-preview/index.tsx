@@ -190,14 +190,20 @@ function AttachmentList({ items }: { items: ReportAttachment[] }) {
       {items.map((a, idx) => (
         <li
           key={a.id}
-          className={`flex items-center gap-3 px-3 py-2 text-[12px] ${
+          className={
             idx === items.length - 1 ? "" : "border-b border-foreground"
-          }`}
+          }
         >
-          <span className="shrink-0 font-bold tabular-nums">
-            첨부{idx + 1}.
-          </span>
-          <span className="truncate">{a.filename}</span>
+          <a
+            href={`${a.blobUrl}?download=${encodeURIComponent(a.filename)}`}
+            download={a.filename}
+            className="flex items-center gap-3 px-3 py-2 text-[12px] text-foreground no-underline transition-colors hover:bg-muted/60 hover:underline focus-visible:bg-muted/60 focus-visible:outline-none"
+          >
+            <span className="shrink-0 font-bold tabular-nums">
+              첨부{idx + 1}.
+            </span>
+            <span className="truncate">{a.filename}</span>
+          </a>
         </li>
       ))}
     </ul>
