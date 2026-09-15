@@ -9,7 +9,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { TodayClock } from "@/components/today-clock";
 
 export type Mode = "edit" | "preview";
-export type SaveStatus = "idle" | "saving" | "saved";
+export type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 type Props = {
   mode: Mode;
@@ -143,12 +143,18 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
   const dotClass =
     status === "saving"
       ? "bg-primary animate-pulse"
-      : "bg-success";
+      : status === "error"
+        ? "bg-destructive"
+        : "bg-success";
 
-  const label = status === "saving" ? "저장 중…" : "저장됨";
+  const label =
+    status === "saving" ? "저장 중…" : status === "error" ? "저장 실패" : "저장됨";
 
   return (
-    <span className="ml-1 hidden w-[60px] items-center gap-1.5 font-mono text-[10.5px] text-muted-foreground sm:inline-flex">
+    <span
+      role={status === "error" ? "alert" : undefined}
+      className={`ml-1 hidden w-[60px] items-center gap-1.5 font-mono text-[10.5px] sm:inline-flex ${status === "error" ? "font-semibold text-destructive" : "text-muted-foreground"}`}
+    >
       <span className={`size-1.5 rounded-full ${dotClass}`} />
       {label}
     </span>

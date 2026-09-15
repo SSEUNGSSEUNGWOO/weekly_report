@@ -57,6 +57,12 @@ export function Workspace() {
   const [trashOpen, setTrashOpen] = useState(false);
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // debounce 대기 중인 저장 (flush 시 즉시 실행)
+  const pendingRef = useRef<{ report: WeeklyReport; week: Week } | null>(null);
+  // 저장을 직렬화해 이전 저장의 updatedAt을 다음 저장이 반드시 사용하도록 함
+  const saveChainRef = useRef<Promise<void>>(Promise.resolve());
+  // reportId → 마지막으로 서버가 돌려준 updatedAt (충돌 감지 기준)
+  const knownUpdatedAtRef = useRef<Record<string, string>>({});
 
   /* ─── 첫 로드 ──────────────────────────── */
   useEffect(() => {
@@ -120,6 +126,50 @@ export function Workspace() {
     ? (attachmentsByReport[activeId] ?? [])
     : [];
 
+  /* ─── 실제 DB 저장 (직렬화 + 충돌 감지) ─ */
+  const persist = (report: WeeklyReport, week: Week) => {
+    saveChainRef.current = saveChainRef.current.then(async () => {
+      const expected =
+        knownUpdatedAtRef.current[report.id] ?? report.meta.updatedAt ?? "";
+      try {
+        const result = await upsertReport(report, week, expected);
+        if (result.ok) {
+          knownUpdatedAtRef.current[report.id] = result.updatedAt;
+          setSaveStatus("saved");
+          return;
+        }
+        setSaveStatus("error");
+        toast.error("저장하지 못했습니다", {
+          id: "save-conflict",
+          duration: Infinity,
+          description:
+            "다른 탭 또는 다른 사용자가 이 보고서를 먼저 수정했습니다. 작성 중인 내용을 복사해 두고 새로고침한 뒤 다시 입력해 주세요.",
+          action: { label: "새로고침", onClick: () => window.location.reload() },
+        });
+      } catch (err) {
+        console.error("[upsertReport]", err);
+        setSaveStatus("error");
+        toast.error("저장하지 못했습니다", {
+          id: "save-error",
+          description: "네트워크 상태를 확인한 뒤 Ctrl+S로 다시 저장해 주세요.",
+        });
+      }
+    });
+    return saveChainRef.current;
+  };
+
+  /* ─── 대기 중인 저장 즉시 실행 ─ */
+  const flushPending = () => {
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = null;
+    }
+    const pending = pendingRef.current;
+    pendingRef.current = null;
+    if (pending) return persist(pending.report, pending.week);
+    return saveChainRef.current;
+  };
+
   /* ─── 입력 변경 → 메모리 업데이트 + debounce 저장 ─ */
   const updateActiveReport = (next: WeeklyReport) => {
     if (!activeWeek) return;
@@ -127,16 +177,9 @@ export function Workspace() {
     setReports((prev) => ({ ...prev, [activeWeek.id]: next }));
     setSaveStatus("saving");
 
+    pendingRef.current = { report: next, week: activeWeek };
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(async () => {
-      try {
-        await upsertReport(next, activeWeek);
-        setSaveStatus("saved");
-      } catch (err) {
-        console.error("[upsertReport]", err);
-        setSaveStatus("idle");
-      }
-    }, SAVE_DEBOUNCE_MS);
+    saveTimerRef.current = setTimeout(flushPending, SAVE_DEBOUNCE_MS);
   };
 
   /* ─── 실제 보고서 생성 ─────────────────────── */
@@ -220,15 +263,9 @@ export function Workspace() {
   /* ─── 수동 저장 ────────────────────────── */
   const handleSave = async () => {
     if (!activeWeek || !activeReport) return;
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     setSaveStatus("saving");
-    try {
-      await upsertReport(activeReport, activeWeek);
-      setSaveStatus("saved");
-    } catch (err) {
-      console.error("[handleSave]", err);
-      setSaveStatus("idle");
-    }
+    pendingRef.current ??= { report: activeReport, week: activeWeek };
+    await flushPending();
   };
 
   /* ─── 삭제 요청 / 확인 ─────────────────── */
@@ -314,14 +351,28 @@ export function Workspace() {
     setTimeout(() => window.print(), 200);
   };
 
-  /* ─── 컴포넌트 unmount 시 펜딩 저장 즉시 flush ─ */
+  /* ─── 주차 전환·unmount 시 펜딩 저장 즉시 flush ─ */
   useEffect(() => {
     return () => {
-      if (saveTimerRef.current) {
-        clearTimeout(saveTimerRef.current);
-      }
+      flushPending();
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeId]);
+
+  /* ─── 탭 닫기: 펜딩 저장 flush + 저장 중이면 이탈 경고 ─ */
+  useEffect(() => {
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      const dirty =
+        pendingRef.current !== null ||
+        saveStatus === "saving" ||
+        saveStatus === "error";
+      flushPending();
+      if (dirty) e.preventDefault();
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saveStatus]);
 
   return (
     <SidebarProvider>

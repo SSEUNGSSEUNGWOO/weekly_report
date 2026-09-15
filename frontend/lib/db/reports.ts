@@ -64,11 +64,18 @@ export async function getReport(id: string): Promise<WeeklyReport | null> {
 }
 
 /* ─── 보고서 저장 (insert/update) ─────────────────────── */
+// expectedUpdatedAt: 클라이언트가 마지막으로 알고 있는 updated_at.
+// DB 값과 다르면 다른 탭/사용자가 먼저 저장한 것이므로 덮어쓰지 않는다.
+export type UpsertResult =
+  | { ok: true; updatedAt: string }
+  | { ok: false; reason: "conflict" };
+
 export async function upsertReport(
   report: WeeklyReport,
   week: Week,
-): Promise<void> {
-  await db
+  expectedUpdatedAt: string,
+): Promise<UpsertResult> {
+  const rows = await db
     .insert(reports)
     .values({
       id: report.id,
@@ -102,7 +109,13 @@ export async function upsertReport(
         status: sql`excluded.status`,
         updatedAt: sql`now()`,
       },
-    });
+      // JS Date는 ms 정밀도라 양쪽 모두 ms로 잘라 비교
+      setWhere: sql`date_trunc('milliseconds', ${reports.updatedAt}) = date_trunc('milliseconds', ${expectedUpdatedAt}::timestamptz)`,
+    })
+    .returning({ updatedAt: reports.updatedAt });
+
+  if (rows.length === 0) return { ok: false, reason: "conflict" };
+  return { ok: true, updatedAt: rows[0].updatedAt!.toISOString() };
 }
 
 /* ─── 새 주차 생성 ────────────────────────────────────── */
