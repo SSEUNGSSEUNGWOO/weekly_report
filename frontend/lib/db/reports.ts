@@ -66,9 +66,10 @@ export async function getReport(id: string): Promise<WeeklyReport | null> {
 /* ─── 보고서 저장 (insert/update) ─────────────────────── */
 // expectedUpdatedAt: 클라이언트가 마지막으로 알고 있는 updated_at.
 // DB 값과 다르면 다른 탭/사용자가 먼저 저장한 것이므로 덮어쓰지 않는다.
+// 충돌 시 현재 DB 행(current)을 함께 돌려줘 클라이언트가 병합 후 재시도할 수 있게 한다.
 export type UpsertResult =
   | { ok: true; updatedAt: string }
-  | { ok: false; reason: "conflict" };
+  | { ok: false; reason: "conflict"; current: WeeklyReport | null };
 
 export async function upsertReport(
   report: WeeklyReport,
@@ -114,7 +115,9 @@ export async function upsertReport(
     })
     .returning({ updatedAt: reports.updatedAt });
 
-  if (rows.length === 0) return { ok: false, reason: "conflict" };
+  if (rows.length === 0) {
+    return { ok: false, reason: "conflict", current: await getReport(report.id) };
+  }
   return { ok: true, updatedAt: rows[0].updatedAt!.toISOString() };
 }
 

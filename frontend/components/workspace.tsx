@@ -20,9 +20,11 @@ import { SiteHeader, type Mode, type SaveStatus } from "@/components/site-header
 import { AnnualRoadmap } from "@/components/annual-roadmap";
 import { TrashDialog } from "@/components/trash-dialog";
 import {
+  PROGRAM_AREAS,
   type WeeklyReport,
   type ReportAttachment,
 } from "@/lib/report-types";
+import { mergeReport } from "@/lib/report-merge";
 import {
   listWeeks,
   getReport,
@@ -63,6 +65,8 @@ export function Workspace() {
   const saveChainRef = useRef<Promise<void>>(Promise.resolve());
   // reportId → 마지막으로 서버가 돌려준 updatedAt (충돌 감지 기준)
   const knownUpdatedAtRef = useRef<Record<string, string>>({});
+  // reportId → 마지막으로 서버가 확인해 준 보고서 (충돌 시 3자 병합의 base)
+  const baseRef = useRef<Record<string, WeeklyReport>>({});
 
   /* ─── 첫 로드 ──────────────────────────── */
   useEffect(() => {
@@ -93,6 +97,7 @@ export function Workspace() {
     (async () => {
       const r = await getReport(activeId);
       if (!cancelled && r) {
+        baseRef.current[activeId] = r;
         setReports((prev) => ({ ...prev, [activeId]: r }));
       }
     })();
@@ -126,26 +131,55 @@ export function Workspace() {
     ? (attachmentsByReport[activeId] ?? [])
     : [];
 
-  /* ─── 실제 DB 저장 (직렬화 + 충돌 감지) ─ */
+  /* ─── 실제 DB 저장 (충돌 시 3자 병합 후 재시도) ─ */
+  const saveOnce = async (report: WeeklyReport, week: Week, attempt: number) => {
+    const expected =
+      knownUpdatedAtRef.current[report.id] ?? report.meta.updatedAt ?? "";
+    const result = await upsertReport(report, week, expected);
+    if (result.ok) {
+      knownUpdatedAtRef.current[report.id] = result.updatedAt;
+      baseRef.current[report.id] = report;
+      setSaveStatus("saved");
+      return;
+    }
+    const { current } = result;
+    if (current && attempt < 3) {
+      const base = baseRef.current[report.id] ?? current;
+      const mergeWith = (local: WeeklyReport) => mergeReport(base, local, current);
+      const { merged, collisions } = mergeWith(report);
+      knownUpdatedAtRef.current[report.id] = current.meta.updatedAt ?? "";
+      baseRef.current[report.id] = current;
+      // 화면·대기 중 저장은 이 스냅샷 이후의 타이핑을 담고 있을 수 있어 각각 병합
+      setReports((prev) => ({
+        ...prev,
+        [report.id]: prev[report.id] ? mergeWith(prev[report.id]).merged : merged,
+      }));
+      if (pendingRef.current?.report.id === report.id) {
+        pendingRef.current.report = mergeWith(pendingRef.current.report).merged;
+      }
+      if (collisions.length > 0) {
+        toast.warning("다른 사용자와 같은 항목을 동시에 수정했습니다", {
+          id: "save-collision",
+          description: `${collisions.map(leafLabel).join(", ")} 항목은 내 입력을 유지했습니다. 상대방 내용을 확인해 주세요.`,
+        });
+      }
+      return saveOnce(merged, week, attempt + 1);
+    }
+    setSaveStatus("error");
+    toast.error("저장하지 못했습니다", {
+      id: "save-conflict",
+      duration: Infinity,
+      description: current
+        ? "다른 사용자의 저장과 계속 겹칩니다. 작성 중인 내용을 복사해 두고 새로고침한 뒤 다시 입력해 주세요."
+        : "이 보고서가 삭제되었거나 찾을 수 없습니다. 작성 중인 내용을 복사해 두고 새로고침해 주세요.",
+      action: { label: "새로고침", onClick: () => window.location.reload() },
+    });
+  };
+
   const persist = (report: WeeklyReport, week: Week) => {
     saveChainRef.current = saveChainRef.current.then(async () => {
-      const expected =
-        knownUpdatedAtRef.current[report.id] ?? report.meta.updatedAt ?? "";
       try {
-        const result = await upsertReport(report, week, expected);
-        if (result.ok) {
-          knownUpdatedAtRef.current[report.id] = result.updatedAt;
-          setSaveStatus("saved");
-          return;
-        }
-        setSaveStatus("error");
-        toast.error("저장하지 못했습니다", {
-          id: "save-conflict",
-          duration: Infinity,
-          description:
-            "다른 탭 또는 다른 사용자가 이 보고서를 먼저 수정했습니다. 작성 중인 내용을 복사해 두고 새로고침한 뒤 다시 입력해 주세요.",
-          action: { label: "새로고침", onClick: () => window.location.reload() },
-        });
+        await saveOnce(report, week, 0);
       } catch (err) {
         console.error("[upsertReport]", err);
         setSaveStatus("error");
@@ -203,6 +237,7 @@ export function Workspace() {
         dateEnd: meta.dateEnd,
       });
       setWeeks((prev) => [...prev, week].sort(sortWeeks));
+      baseRef.current[report.id] = report;
       setReports((prev) => ({ ...prev, [report.id]: report }));
       setAttachmentsByReport((prev) => ({ ...prev, [report.id]: [] }));
       setActiveId(week.id);
@@ -519,6 +554,25 @@ export function Workspace() {
       )}
     </SidebarProvider>
   );
+}
+
+/* ─── 헬퍼: 병합 단위 경로 → 표시용 라벨 ─────────────── */
+const LEAF_LABELS: Record<string, string> = {
+  "meta.title": "제목",
+  "meta.dateStart": "시작일",
+  "meta.dateEnd": "종료일",
+  "meta.reportDate": "보고일",
+  discussions: "주요 논의사항",
+  miscs: "기타 사항",
+};
+
+function leafLabel(path: string): string {
+  const m = path.match(/^areas\.(\w+)\.(result|plans)$/);
+  if (m) {
+    const area = PROGRAM_AREAS.find((a) => a.key === m[1]);
+    return `${area?.label ?? m[1]} ${m[2] === "result" ? "실적" : "계획"}`;
+  }
+  return LEAF_LABELS[path] ?? path;
 }
 
 /* ─── 헬퍼: 오늘이 속한 주차 메타 계산 ───────────────── */
